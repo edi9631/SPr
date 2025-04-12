@@ -1,0 +1,64 @@
+from decimal import Decimal
+
+class CashRegister:
+    def __init__(self, initial_data):
+        self.funds = self.parse_funds(initial_data)
+
+    def parse_funds(self, data):
+        fund_dict = {}
+        items = data.split(',')
+        for item in items:
+            denom, count = item.split(':')
+            denom = Decimal(denom) 
+            count = int(count)
+            fund_dict[denom] = count
+        return fund_dict
+
+    def add_cash(self, amount):
+        new_funds = self.parse_funds(amount)
+        for denom, count in new_funds.items():
+            self.funds[denom] += count
+
+    def give_change(self, change_amount):
+        change_amount = Decimal(str(change_amount)) 
+        change_given = {}
+        denominations = sorted(self.funds.keys(), reverse=True)
+
+        for denom in denominations:
+            while change_amount >= denom and self.funds[denom] > 0:
+                change_amount -= denom
+                self.funds[denom] -= 1
+                change_given[denom] = change_given.get(denom, 0) + 1
+
+        if round(change_amount, 2) == 0:
+            return change_given
+        else:
+            print("Не може да се върне точно ресто.")
+            return None
+
+    def report(self):
+        print(f"Общ баланс в касата:")
+        for denom, count in self.funds.items():
+            print(f"{denom} лв. - {count} броя")
+
+
+
+
+initial_data = "0.1:0,0.2:0,0.5:0,1:0,2:0,5:1,10:1,20:0,50:0,100:0,500:0"
+cash_register = CashRegister(initial_data)
+
+cash_register.add_cash("50:1,2:1,1:1,0.5:1,0.2:1")  
+change = cash_register.give_change(15)
+if change:
+    print("Върнато ресто:", {float(k): v for k, v in change.items()})
+cash_register.add_cash("100:1")  
+change = cash_register.give_change(53.70)
+if change:
+    print("Върнато ресто:", {float(k): v for k, v in change.items()})
+cash_register.add_cash("500:1")  
+change = cash_register.give_change(100)
+if change:
+    print("Върнато ресто:", {float(k): v for k, v in change.items()})
+
+
+cash_register.report()
